@@ -80,4 +80,65 @@ def get_user_expense(user_id):
     conn.close()
     return rows
 
-#def update_expense()
+def update_expense(expense_id, new_amount=None, new_date=None, new_description=None):
+    """
+    Update an existing expense record. Only updates the fields that are provided. 
+
+    :param expense_id: The ID of the expense to update
+    :param new_amount: The new amount (optional)
+    :param new_date: The new date (optional)
+    :param new_description: The new description (optional)
+    """
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    # Build the update query dynamically based on which arguments are None
+    update_parts = []
+    params = []
+
+    if new_amount is not None:
+        update_parts.append("amount = ?")
+        params.update(new_amount)
+    if new_date is not None:
+        update_parts.append("date = ?")
+        params.append(new_date)
+    if new_description is not None:
+        update_parts.append("description = ?")
+        params.append(new_description)
+
+    # If no fields were provided, nothing to update
+    if not update_parts:
+        print("No fields to update.")
+        conn.close()
+        return
+    
+    update_clause = ", ".join(update_parts)
+    query = f"UPDATE expenses SET {update_clause} WHERE expense_id = ?"
+    params.append(expense_id)
+
+    cursor.execute(query, tuple(params))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("Expense updated successfully")
+
+def delete_expense(expense_id):
+    """
+    Delete an expense recorded by its ID
+
+    :param expense_id: The ID of the expense to delete
+    """
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    query = """
+    DELETE FROM expenses
+    WHERE expense_id = ?
+    """
+    cursor.execute(query, (expense_id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("Expense deleted successfully!")
