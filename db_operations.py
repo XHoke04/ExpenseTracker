@@ -1,9 +1,11 @@
 import sqlite3
+import bcrypt
 
 DATABASE = 'expense.db'
 
 # Add a user to the database
 def add_user(username, email, password):
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     insert_query = """
@@ -11,7 +13,7 @@ def add_user(username, email, password):
     VALUES (?, ?, ?)
     """
 
-    cursor.execute(insert_query, (username, email, password))
+    cursor.execute(insert_query, (username, email, hashed))
     conn.commit()
     cursor.close()
     conn.close()
@@ -39,8 +41,9 @@ def authenticate_user(email, password):
     """
     user = get_user_by_email(email)
     if user:
-        user_id, username, user_email, stored_password = user
-        if password == stored_password:
+        user_id, username, user_email, stored_hashed_pw = user
+        # stored_hashed_pw is in bytes, password is in plaintext
+        if bcrypt.checkpw(password.encode('utf-8'), stored_hashed_pw):
             return user_id
         else:
             print("Error, invalid")
