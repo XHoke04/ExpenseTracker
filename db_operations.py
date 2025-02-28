@@ -148,9 +148,14 @@ def update_expense(expense_id, new_amount=None, new_date=None, new_description=N
 
     cursor.execute(query, tuple(params))
     conn.commit()
+
+    if cursor.rowcount == 0:
+        print(f"No expense found with ID {expense_id}, or no changes made")
+    else:
+        print("Expense updated successfully!")
+
     cursor.close()
     conn.close()
-    print("Expense updated successfully")
 
 def delete_expense(expense_id):
     """
@@ -158,17 +163,16 @@ def delete_expense(expense_id):
 
     :param expense_id: The ID of the expense to delete
     """
-
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-
-    query = """
-    DELETE FROM expenses
-    WHERE expense_id = ?
-    """
+    query = "DELETE FROM expenses WHERE expense_id = ?"
     cursor.execute(query, (expense_id,))
-
     conn.commit()
+    
+    if cursor.rowcount == 0:
+        print(f"No expense found with ID {expense_id}.")
+    else:
+        print("Expense deleted successfully!")
+
     cursor.close()
     conn.close()
-    print("Expense deleted successfully!")
